@@ -1,7 +1,6 @@
 #-*- coding:utf-8 -*-
 #!/usr/bin/python 
 import cv2 as cv
-
 import numpy as np
 
 class ShapeAnalysis:

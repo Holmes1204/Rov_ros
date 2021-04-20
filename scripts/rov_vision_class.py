@@ -1,10 +1,5 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
-# Environment: Ubuntu 18.04, Python 3.6.9, OpenCV 3.2.0, Numpy 1.19.2
-# Author:Liu, Yuming
-# Date:2021.04.19
-
-
 import cv2
 import numpy as np
 import os
@@ -12,11 +7,11 @@ import threading
 import time
 
 import rospy
+from rospy.exceptions import ROSException
 from topic_example.msg import  Img_fb 
 
-def ROS_img():
+class ROS_img():
     def __init__(self):
-        rospy.init_node("img_fb_node")
         self.img_pub = rospy.Publisher('img_feedback',Img_fb,queue_size=1)
         self.img_fb = Img_fb()
     
@@ -34,17 +29,22 @@ class RovVision:
         self.line_var = 0
         self.start_move = True
         self.ros_node = ROS_img()
+        self.run_main = True
         # self.forward, self.bottom = self.selectCamera()    # for real camera
-        cap_forward = cv2.VideoCapture("scripts/ROV_test1.mp4")    # test only
+        cap_forward = cv2.VideoCapture("/home/holmes/ros_ws/EngCom/src/ros_serial/scripts/ROV_test1.mp4")    # test only
         cap_bottom = []                                    # test only
         thread_follow_line = threading.Thread(target=self.followLine)
         thread_auto_adapt = threading.Thread(target=self.autoAdapt)
         thread_detect_block = threading.Thread(target=self.detectBlock)
         thread_start_move = threading.Thread(target=self.startMove)
 
+        ret, img_forward = cap_forward.read()
+        img_forward = cv2.flip(img_forward, 0)
+        self.img_forward_src = cv2.flip(img_forward, 1)
+
         thread_auto_adapt.start()
         thread_start_move.start()
-        while not self.start_move:
+        while not self.start_move and self.run_main:
             try:
                 ret, img_forward = cap_forward.read()
                 img_forward = cv2.flip(img_forward, 0)
@@ -55,7 +55,7 @@ class RovVision:
         
         thread_detect_block.start()
         thread_follow_line.start()
-        while True:
+        while self.run_main:
             try:
                 ret, img_forward = cap_forward.read()
                 img_forward = cv2.flip(img_forward, 0)
@@ -105,7 +105,7 @@ class RovVision:
         pass
 
     def autoAdapt(self):
-        while True:
+        while self.run_main:
             try:
                 if abs(self.pre_angle) <= 0.35:  # 0.35rad == 20degree
                     img_src = self.img_forward_src
@@ -164,9 +164,7 @@ class RovVision:
         :param: none
         :return: none
         """
-        run_main = True
-        rate = rospy.Rate(5)
-        while True:  # and not rospy.is_shutdown()):
+        while self.run_main:  # and not rospy.is_shutdown()):
             try:
                 img_src = self.img_forward_src
                 img_src = cv2.resize(img_src, (int(img_src.shape[1] * 0.5), int(img_src.shape[0] * 0.5)))
@@ -214,18 +212,17 @@ class RovVision:
                 output_img = cv2.putText(output_img, 'dynamic distance var:' + str(round(dis_var, 7)),
                                          (int(img_src.shape[1] * 0.03), int(img_src.shape[0] * 0.4)),
                                          cv2.FONT_HERSHEY_DUPLEX, 1, (0, 0, 255), 3)
-                self.img_fb.angle_fb=round(self.pre_angle, 7)
-                self.img_fb.dist_fb=round(self.line_var, 7)
-                self.img_pub.publish(self.img_fb)
+
+                self.ros_node.send_msg(round(self.pre_angle, 7),round(now_error, 7))
+
                 cv2.imshow('output', output_img)
                 cv2.imshow('img', img_src)
-                rate.sleep()
                 if(cv2.waitKey(1)&0xFF==ord('q')):
                     cv2.destroyAllWindows()
-                    run_main=False
+                    self.run_main=False
                     break
-            except:
-                pass
+            except ROSException:
+                break
     
 
     """ 
@@ -234,7 +231,7 @@ class RovVision:
     """
 
     def startMove(self):
-        while not self.start_move:
+        while not self.start_move and self.run_main:
             try:
                 img_src = self.img_forward_src
                 img_src = cv2.resize(img_src, (int(img_src.shape[1] * 0.5), int(img_src.shape[0] * 0.5)))
@@ -261,7 +258,7 @@ class RovVision:
                 cv2.imshow('1', img_0)
                 if(cv2.waitKey(1)&0xFF==ord('q')):
                     cv2.destroyAllWindows()
-                    run_main=False
+                    self.run_main=False
                     break
 
                 if len(start_x) == 0 or len(start_y) == 0:
@@ -295,4 +292,6 @@ class RovVision:
 
 
 if __name__ == '__main__' :
+    rospy.init_node("img_fb_node")
     RovVision()
+
