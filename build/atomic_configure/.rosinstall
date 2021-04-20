@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/holmes/ros_ws/EngCom/src/ros_serial/build/devel/setup.sh
