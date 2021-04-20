@@ -1,8 +1,0 @@
-prefix=/home/holmes/ros_ws/EngCom/src/ros_serial/build/devel
-
-Name: topic_example
-Description: Description of topic_example
-Version: 0.0.0
-Cflags: -I/home/holmes/ros_ws/EngCom/src/ros_serial/build/devel/include -I/home/holmes/ros_ws/EngCom/src/ros_serial/include
-Libs: -L${prefix}/lib 
-Requires: 
