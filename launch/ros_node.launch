@@ -1,0 +1,4 @@
+<launch>
+        <node pkg="topic_example" type="rov_vision_class.py" name="vision_node" output="screen" />
+        <node pkg="topic_example" type="publish_node" name="publish_node" output="screen" /> 
+</launch>

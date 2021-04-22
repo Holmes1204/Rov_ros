@@ -1,6 +1,0 @@
-<launch>
-<!-- 打开手柄节点-->
-        <node pkg="joy" type="joy_node" name="joy_node" output="screen" />
-<!-- 打开串口通讯节点-->
-        <node pkg="topic_example" type="publish_node" name="publish_node" output="screen" /> 
-</launch>

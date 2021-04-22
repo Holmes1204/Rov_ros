@@ -17,10 +17,11 @@ void img_fb_callback(const topic_example::Img_fb::ConstPtr& img_fb_msg){
     float angle_error = img_fb_msg->angle_fb;
     float dist_error = img_fb_msg->dist_fb;
     static mtr_msg mtrs;
-    mtrs.mtr_state[0] = 0;
+    static int x=1,count;
+    mtrs.mtr_state[0] = 1;
     mtrs.mtr_state[1] =  angle_error*2400/3.1415926;
     mtrs.mtr_state[2]   =  (int) dist_error;
-    mtrs.mtr_state[3]   = 0;
+    mtrs.mtr_state[3]   = x;
     mtrs.mtr_state[4]   = 0;
     mtrs.mtr_state[5]   = 0;
     mtrs.mtr_state[6]   = 0;
@@ -28,6 +29,10 @@ void img_fb_callback(const topic_example::Img_fb::ConstPtr& img_fb_msg){
     mtrs.mtr_state[8]   = 0;
     mtrs.mtr_state[9]   = 0;
     mtrs.mtr_state[10]   = 0;
+    if(count==100){
+        x=(x==1?2:1);
+        count=0;}
+    count++;
     if(TX_serial_msg(mtrs))
         ROS_INFO("%d %d %d %d",mtrs.mtr_state[0],mtrs.mtr_state[1],mtrs.mtr_state[2],mtrs.mtr_state[3]);    
     else
