@@ -16,8 +16,8 @@ class ROS_img():
         self.img_fb = Img_fb()
     
     def send_msg(self,angle,dist):
-        self.img_fb.angle_fb=round(angle, 7)
-        self.img_fb.dist_fb=round(dist, 7)
+        self.img_fb.angle_fb=angle
+        self.img_fb.dist_fb=dist
         self.img_pub.publish(self.img_fb)
 
 class RovVision:
@@ -229,7 +229,6 @@ class RovVision:
     TODO: to be checked in whatever situation can start the move
 
     """
-
     def startMove(self):
         while not self.start_move and self.run_main:
             try:
